@@ -7,7 +7,7 @@
 #include <map>
 //#include "iobuf.h"
 #include <deque>
-#include <tinythread.h>
+#include "tinythread.h"
 #include <exception>
 #include <stdexcept>
 

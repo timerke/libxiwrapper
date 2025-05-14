@@ -52,7 +52,7 @@ endif()
 include_directories(${BINDY_INCLUDE_DIR})
 
 if (BUILD_SHARED_LIBS)
-  add_library(xiwrapper SHARED wrapper.cpp)
+  add_library(xiwrapper SHARED wrapper.cpp revealer_1.cpp)
 else()
   add_library(xiwrapper STATIC wrapper.cpp)
 endif()
