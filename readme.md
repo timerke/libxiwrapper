@@ -15,10 +15,10 @@ git clone https://gitlab.ximc.ru/ximc/libxiwrapper
 * скопировать туда же `bindy.lib`, `bindy.dll` требуемой разряднсти (х32 или х64) (можно взять из релиза `libximc` или собрать самостоятельно);
 * cкачать и установить CMake (https://cmake.org) и MS Visual Studio (13 и выше);
 * запустить cmake-gui;
-* указать путь до каталога libxiwrapper (с CMakeLists.txt) и путь <до каталога libxiwrapper>/build в поле для выходной сборочной директории;
-* добавить переменную (нажать `Add entry`) - имя `BINDY_PATH`, тип `string`, значение - `<путь до каталога Bindy>/Bindy`;
-* Configure > Visual Studio 12 2013, выбрать разрядность проекта (х32 или x64, разрядность Bindy должна быть той же);
-* Generate;
+* указать путь до каталога `libxiwrapper` (с CMakeLists.txt) и путь `<до каталога libxiwrapper>/build` в поле для выходной сборочной директории;
+* добавить переменную (нажать `Add entry`): имя - `BINDY_PATH`, тип - `string`, значение - `<путь до каталога Bindy>/Bindy`;
+* `Configure` > `Visual Studio 12 2013`, выбрать разрядность проекта (х32 или x64, разрядность Bindy должна быть той же);
+* `Generate`;
 * собрать сгенерированное решение в Visual Studio.
 
 ## Linux, Mac OS
