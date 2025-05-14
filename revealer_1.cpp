@@ -204,11 +204,11 @@ int sendMessageToBroadcast(SOCKET sock)
         return result;
     }
 
-    char buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE] = "";
 #if defined(_WIN32) || defined(WIN64)
-    sprintf_s(buffer, BUFFER_SIZE, "DISCOVER_CUBIELORD_REQUEST %u\0", ntohs(sock_addr.sin_port));
+    sprintf_s(buffer, BUFFER_SIZE, "DISCOVER_CUBIELORD_REQUEST %u", ntohs(sock_addr.sin_port));
 #else
-    sprintf(buffer, "DISCOVER_CUBIELORD_REQUEST %u\0", ntohs(sock_addr.sin_port));
+    sprintf(buffer, "DISCOVER_CUBIELORD_REQUEST %u", ntohs(sock_addr.sin_port));
 #endif
 
     sockaddr_in to_addr;
