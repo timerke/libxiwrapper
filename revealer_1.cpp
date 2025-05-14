@@ -169,7 +169,6 @@ void receiveResponses(SOCKET sock, Revealer1Addresses* addresses)
         sender_addr_size = sizeof(sender_addr);
         int result = recvfrom(sock, recv_buffer, sizeof(recv_buffer), 0, (sockaddr*)&sender_addr, &sender_addr_size);
         if (result == SOCKET_ERROR) {
-            printf("Failed to receive response\n");
             break;
         }
 
