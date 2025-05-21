@@ -67,14 +67,13 @@ extern "C" {
 #endif
 
 // Timeout in milliseconds
-#define SLEEP_WAIT_TIME 1
+#define SLEEP_WAIT_TIME_MS 100
 
 // Total wait timeout until connection is established
 #define SEND_WAIT_TIMEOUT_MS 5000
 
 bindy::Bindy* instance = NULL;
 char* keyfile = NULL;
-
 
 
 class Device {
@@ -130,7 +129,7 @@ inline void read_uint32(uint32_t * value, uint8_t * p) {
 	*value = ((uint32_t)(p[0]<<24)) | ((uint32_t)(p[1]<<16)) | ((uint32_t)(p[2]<<8)) | ((uint32_t)(p[3]<<0));
 }
 
-int adaptive_wait_send (conn_id_t conn_id, std::vector<uint8_t> data, int timeout_ms)
+int adaptive_wait_send(conn_id_t conn_id, std::vector<uint8_t> data, int timeout_ms)
 {
 	bool send_ok = false;
 	int delay = 2;
@@ -141,7 +140,7 @@ int adaptive_wait_send (conn_id_t conn_id, std::vector<uint8_t> data, int timeou
 			send_ok = true;
 		} catch (std::runtime_error &e) {
 			sleep_ms(delay);
-			delay = delay*1.5;
+			delay = delay * 1.5;
 			total_delay += delay;
 		}
 	}
@@ -248,14 +247,14 @@ void sleep_until_recv(conn_id_t conn_id, int timeout)
 	int time_elapsed = 0;
 	bool flag;
 	do {
-		time_elapsed += SLEEP_WAIT_TIME;
-		sleep_ms(SLEEP_WAIT_TIME);
+		time_elapsed += SLEEP_WAIT_TIME_MS;
+		sleep_ms(SLEEP_WAIT_TIME_MS);
 		tlock lock(global_mutex);
 		if (s_enum.count(conn_id) == 0)
 			flag = false;
 		else
 			flag = s_enum[conn_id].recv;
-	} while ( (false == flag) && (time_elapsed < timeout) );
+	} while (!flag && (time_elapsed < timeout));
 }
 
 void sleep_until_open(uint32_t serial, int timeout)
@@ -263,8 +262,8 @@ void sleep_until_open(uint32_t serial, int timeout)
 	int time_elapsed = 0;
 	bool flag;
 	do {
-		time_elapsed += SLEEP_WAIT_TIME;
-		sleep_ms(SLEEP_WAIT_TIME);
+		time_elapsed += SLEEP_WAIT_TIME_MS;
+		sleep_ms(SLEEP_WAIT_TIME_MS);
 		tlock lock(global_mutex);
 		if (open_ok.count(serial) == 0)
 			flag = false;
@@ -278,29 +277,31 @@ int bindy_enumerate(const char * addr, int enum_timeout, uint8_t ** ptr)
 	return bindy_enumerate_specify_adapter(addr, "", enum_timeout, ptr);
 }
 
-int bindy_enumerate_specify_adapter(const char * addr, const char * adapter_addr, int enum_timeout, uint8_t ** ptr)
+int bindy_enumerate_specify_adapter(const char* addr, const char* adapter_addr, int enum_timeout, uint8_t** ptr)
 {
-	if (false == bindy_init())
+	if (!bindy_init())
 		return -1;
 
 	uint32_t devices = 0;
 	*ptr = nullptr;
-	uint8_t * buf = NULL;
+	uint8_t* buf = NULL;
 	conn_id_t enum_conn_id = conn_id_invalid;
 	try {
-		std::vector<uint8_t> s(7*4, 0);
+		std::vector<uint8_t> s(7 * 4, 0);
 		uint32_to_buf(CURRENT_PROTOCOL_VERSION, &s.at(0));
 		uint32_to_buf(data_pkt::EnumerateRequest, &s.at(4));
 
 		enum_conn_id = instance->connect(addr, adapter_addr);
 		int initial_timeout = adaptive_wait_send(enum_conn_id, s, enum_timeout); // send enum request
-		sleep_until_recv(enum_conn_id, enum_timeout-initial_timeout);
+		sleep_until_recv(enum_conn_id, enum_timeout - initial_timeout);
 
 		tlock lock(global_mutex);
-		if (!s_enum[enum_conn_id].recv)
+		if (!s_enum[enum_conn_id].recv) {
+			s_enum.erase(enum_conn_id);
 			return 0;
-		int recv_size = s_enum[enum_conn_id].size;
+		}
 
+		int recv_size = s_enum[enum_conn_id].size;
 		// collect whatever we received into a temp buffer
 		std::vector<uint8_t> vtmp_buf(recv_size);
 		memcpy(&vtmp_buf.at(0), s_enum[enum_conn_id].ptr, recv_size);
@@ -318,6 +319,7 @@ int bindy_enumerate_specify_adapter(const char * addr, const char * adapter_addr
 
 		// clean enum struct
 		free(s_enum[enum_conn_id].ptr);
+		s_enum[enum_conn_id].ptr = NULL;
 		s_enum.erase(enum_conn_id);
 
 		// return the data
@@ -334,6 +336,7 @@ int bindy_enumerate_specify_adapter(const char * addr, const char * adapter_addr
 void bindy_free(uint8_t **ptr)
 {
 	free(*ptr);
+	*ptr = nullptr;
 }
 
 uint32_t bindy_open(const char * addr, uint32_t serial, int open_timeout)
