@@ -15,6 +15,8 @@
 #define nullptr NULL
 #endif
 
+#define _UNUSED(x) (void)x;
+
 /// Crossplatform sleep
 void sleep_ms(size_t ms)
 {
@@ -138,9 +140,10 @@ int adaptive_wait_send(conn_id_t conn_id, std::vector<uint8_t> data, int timeout
 		try {
 			instance->send_data(conn_id, data);
 			send_ok = true;
-		} catch (std::runtime_error &e) {
+		} catch (std::runtime_error &exc) {
+			_UNUSED(exc)
 			sleep_ms(delay);
-			delay = delay * 1.5;
+			delay = (int)(delay * 1.5);
 			total_delay += delay;
 		}
 	}
@@ -431,7 +434,7 @@ size_t bindy_read(conn_id_t conn_id, uint8_t* buf, size_t size)
 	if (d->buffer->size() < size)
 		size = d->buffer->size();
 	if (size > 0) {
-		for (int i = 0; i < size; i++)
+		for (unsigned int i = 0; i < size; i++)
 			buf[i] = d->buffer->at(i);
 		d->buffer->erase(d->buffer->begin(), d->buffer->begin()+size);
 	}
