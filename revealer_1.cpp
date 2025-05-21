@@ -7,13 +7,15 @@
 
 void bindy_freeMemoryForRevealer1Addresses(Revealer1Addresses* addresses)
 {
-    if (addresses == NULL)
+    if (!addresses)
         return;
 
     for (int i = 0; i < addresses->allocated_count; i++) {
         free(addresses->addresses[i]);
+        addresses->addresses[i] = NULL;
     }
     free(addresses);
+    addresses = NULL;
 }
 
 
